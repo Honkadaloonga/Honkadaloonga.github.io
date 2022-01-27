@@ -5,7 +5,7 @@ precision highp int;
 varying vec2 i_pos;
 
 // Ray descriptors
-const int maxStepCount = 100;
+const int maxStepCount = 1000;
 const float epsilon = 0.0001;
 
 // IFS decriptors
@@ -19,8 +19,8 @@ const int maxIter = 10;
 // Camera descriptors
 uniform float ar;
 const vec3 camPos = vec3(4.43, -3.42, 0.25);
-const float yaw = 1.5;
-const float pitch = 1.0;
+const float yaw = 1.52;
+const float pitch = 0.94;
 
 vec3 rotateX(vec3 v, float a) {
     return vec3(v.x, v.y*cos(a) - v.z*sin(a), v.y*sin(a) + v.z*cos(a));
@@ -35,7 +35,6 @@ vec3 rotateZ(vec3 v, float a) {
 }
 
 vec2 DE(vec3 pos) {
-    vec3 scmo = vec3(scale-1.0, scale-1.0, scale-1.0);
     pos = rotateZ(pos, rotation);
     pos.x = -pos.x;
     vec3 z = pos;
@@ -54,6 +53,7 @@ vec2 DE(vec3 pos) {
         z = rotateY(z, rot1.y);
         z = rotateZ(z, rot1.z);
 
+        // Tetrahedral symmetry
         if (z.x + z.y < 0.0) {
             z = -z.yxz;
             z.z = -z.z;
@@ -67,16 +67,16 @@ vec2 DE(vec3 pos) {
             z.x = -z.x;
         }
 
+        // Cubic symmetry
+        z = abs(z);
+
         z = rotateX(z, rot2.x);
         z = rotateY(z, rot2.y);
         z = rotateZ(z, rot2.z);
 
-        // z.x = scale * z.x - (scale-1.0);
-        // z.y = scale * z.y - (scale-1.0);
-        // z.z = scale * z.z - (scale-1.0);
-        z = scale*z - 2.0*(scale - 1.0);
+        z = 2.0*z - scale*center;
         r = length(z);
-        is *= 1.0/scale;
+        is *= 0.5;
     }
 
     return vec2(float(j), (r-2.0)*is);
@@ -93,7 +93,7 @@ void main() {
     vec2 uv = i_pos;
     uv = uv * 0.5 + vec2(0.5, 0.5);
 
-    vec3 rayDir = vec3(i_pos * 0.3, -1);
+    vec3 rayDir = vec3(i_pos * 0.32, -1);
     rayDir.x *= ar;
     rayDir = rotateX(rayDir, yaw);
     rayDir = rotateZ(rayDir, pitch);
@@ -102,7 +102,9 @@ void main() {
     vec3 rayPos = camPos;
     float rayDst = 0.0;
     int marchSteps = 0;
-    vec4 result = mix(vec4(3.0, 51.0, 20.0, 255.0), vec4(6.0, 16.0, 28.0, 255.0), uv.y)/255.0;
+    float esc = 50.0;
+    // vec4 result = mix(vec4(3.0, 51.0, 20.0, 255.0), vec4(6.0, 16.0, 28.0, 255.0), uv.y)/255.0;
+    vec4 result = mix(vec4(51.0, 3.0, 20.0, 255.0), vec4(20.0, 3.0, 61.0, 255.0), uv.y)/255.0;
 
     for (int i = 0; i < maxStepCount; i++) {
         marchSteps++;
@@ -113,8 +115,10 @@ void main() {
             vec3 normal = estimateNormal(rayPos - rayDir*epsilon*2.0);
             float colorA = clamp(dot(normal*0.5 + 0.5, vec3(0.2, 0.3, 0.75)), 0.0, 1.0);
             float colorB = clamp(de.x/float(maxIter), 0.0, 1.0);
-            vec3 colorMix = clamp(colorA*vec3(0.0, 0.0, 1.0) + colorB*vec3(0.0, 1.0, 0.0), 0.0, 1.0);
+            vec3 colorMix = clamp(colorA*vec3(1.0, 0.0, 0.0) + colorB*vec3(0.0, 0.0, 1.0), 0.0, 1.0);
             result = vec4(colorMix, 1.0);
+            marchSteps += 10;
+            esc = 75.0;
             break;
         }
 
@@ -125,7 +129,8 @@ void main() {
         }
     }
 
-    float rim = float(marchSteps)/70.0;
+    float rim = clamp(float(marchSteps)/esc, 0.0, 1.0);
     gl_FragColor = result * rim;
+    gl_FragColor.w = 1.0;
 }
 `;
