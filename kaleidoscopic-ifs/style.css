@@ -1,0 +1,60 @@
+:root {
+    font-family: 'Courier New', Courier, monospace;
+    color: #fff;
+}
+html, body {
+    overflow: hidden;
+}
+body {
+    margin: 0;
+    background-color: #111;
+}
+canvas {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: -1000;
+}
+#rotation {
+    position: absolute;
+    width: 50%;
+    bottom: 1%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+#inputsWrap {
+    margin: 4px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 2px solid #222;
+    border-radius: 8px;
+    width: 200px;
+    height: 300px;
+    z-index: 10;
+}
+.inputs {
+    width: 100%;
+    padding: 0 2px 0 2px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: black;
+    height: 10px;
+    border-radius: 5px;
+    opacity: 0.5;
+    -webkit-transition: .2s;
+    transition: opacity .2s;
+    z-index: 5;
+}
+.inputs:hover {
+    opacity: 1;
+}
+.inputs::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%; 
+    background: white;
+    cursor: pointer;
+}
