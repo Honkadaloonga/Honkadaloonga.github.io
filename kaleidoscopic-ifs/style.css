@@ -16,18 +16,10 @@ canvas {
     transform: translate(-50%, -50%);
     z-index: -1;
 }
-#rotation {
-    position: absolute;
-    width: 50%;
-    bottom: 1%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-}
-
 #inputsWrap {
     position: absolute;
     margin: 10px;
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(47, 47, 47, 0.75);
     border: 2px solid #222;
     border-radius: 8px;
     width: 200px;
@@ -58,7 +50,6 @@ canvas {
     background: white;
     cursor: pointer;
 }
-
 button {
     font-family: inherit;
     width: 100%;

@@ -4,11 +4,12 @@ precision highp int;
 
 varying vec2 i_pos;
 
-// Ray descriptors
-const int maxStepCount = 1000;
+// Ray variables
+const int maxStepCount = 256;
 const float epsilon = 0.0001;
+uniform int aaLevel;
 
-// IFS decriptors
+// IFS variables
 uniform float rotation;
 uniform vec3 rot1;
 uniform vec3 rot2;
@@ -16,11 +17,13 @@ uniform vec3 center;
 uniform float scale;
 const int maxIter = 10;
 
-// Camera descriptors
+// Camera variables
 uniform float ar;
 const vec3 camPos = vec3(4.43, -3.42, 0.25);
 const float yaw = 1.52;
 const float pitch = 0.94;
+uniform float width;
+uniform float height;
 
 vec3 rotateX(vec3 v, float a) {
     return vec3(v.x, v.y*cos(a) - v.z*sin(a), v.y*sin(a) + v.z*cos(a));
@@ -67,8 +70,20 @@ vec2 DE(vec3 pos) {
             z.x = -z.x;
         }
 
-        // Cubic symmetry
+        // Full octahedral symmetry
         z = abs(z);
+        if (z.x - z.y < 0.0) {
+            z = z.yxz;
+        }
+        if (z.x - z.z < 0.0) {
+            z = z.zyx;
+        }
+        if (z.y - z.z < 0.0) {
+            z = z.xzy;
+        }
+
+        // Cubic symmetry
+        // z = abs(z);
 
         z = rotateX(z, rot2.x);
         z = rotateY(z, rot2.y);
@@ -89,11 +104,12 @@ vec3 estimateNormal(vec3 p) {
     return normalize(vec3(x, y, z));
 }
 
-void main() {
-    vec2 uv = i_pos;
-    uv = uv * 0.5 + vec2(0.5, 0.5);
+float rand(float v) {
+    return fract((sin(v * 12.9898) + 1.1) * 4758.5453);
+}
 
-    vec3 rayDir = vec3(i_pos * 0.32, -1);
+vec3 sample(vec2 c) {
+    vec3 rayDir = vec3(c * 0.32, -1);
     rayDir.x *= ar;
     rayDir = rotateX(rayDir, yaw);
     rayDir = rotateZ(rayDir, pitch);
@@ -103,8 +119,7 @@ void main() {
     float rayDst = 0.0;
     int marchSteps = 0;
     float esc = 50.0;
-    // vec4 result = mix(vec4(3.0, 51.0, 20.0, 255.0), vec4(6.0, 16.0, 28.0, 255.0), uv.y)/255.0;
-    vec4 result = mix(vec4(51.0, 3.0, 20.0, 255.0), vec4(20.0, 3.0, 61.0, 255.0), uv.y)/255.0;
+    vec3 result = mix(vec3(51.0, 3.0, 20.0), vec3(20.0, 3.0, 61.0), c.y*0.5 + 0.5)/255.0;
 
     for (int i = 0; i < maxStepCount; i++) {
         marchSteps++;
@@ -115,8 +130,7 @@ void main() {
             vec3 normal = estimateNormal(rayPos - rayDir*epsilon*2.0);
             float colorA = clamp(dot(normal*0.5 + 0.5, vec3(0.2, 0.3, 0.75)), 0.0, 1.0);
             float colorB = clamp(de.x/float(maxIter), 0.0, 1.0);
-            vec3 colorMix = clamp(colorA*vec3(1.0, 0.0, 0.0) + colorB*vec3(0.0, 0.0, 1.0), 0.0, 1.0);
-            result = vec4(colorMix, 1.0);
+            result = clamp(colorA*vec3(1.0, 0.0, 0.0) + colorB*vec3(0.0, 0.0, 1.0), 0.0, 1.0);
             marchSteps += 10;
             esc = 75.0;
             break;
@@ -130,7 +144,31 @@ void main() {
     }
 
     float rim = clamp(float(marchSteps)/esc, 0.0, 1.0);
-    gl_FragColor = result * rim;
-    gl_FragColor.w = 1.0;
+    result *= rim;
+    return result;
+}
+
+void main() {
+    vec3 result = vec3(0.0, 0.0, 0.0);
+    if (aaLevel == 1) {
+        result = sample(i_pos);
+    } else {
+        for (int i = 0; i < 8; i++) {
+            if (i == aaLevel) {
+                break;
+            }
+            vec2 uv = i_pos;
+            uv = uv * 0.5 + 0.5;
+            uv.x *= width;
+            uv.y *= height;
+            uv += vec2(rand(uv.x + float(i)), rand(uv.y + float(i)));
+            uv.x /= width;
+            uv.y /= height;
+            uv = (uv - 0.5) * 2.0;
+            result += sample(uv);
+        }
+        result /= float(aaLevel);
+    }
+    gl_FragColor = vec4(result, 1.0);
 }
 `;
