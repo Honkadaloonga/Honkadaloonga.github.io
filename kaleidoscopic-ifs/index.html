@@ -9,16 +9,16 @@
         <canvas id="canvas" width="128" height="128"></canvas>
         <div id="inputsWrap">
             <table style="width: 100%; height: 100%; padding: 0 8px 0 2px;">
-                <tr><td>x1</td><td><input id="x1" class="inputs rand reset loop " type="range" min="-3.141592" max="3.141592" step="0.000001" value="0"></td></tr>
-                <tr><td>y1</td><td><input id="y1" class="inputs rand reset loop " type="range" min="-3.141592" max="3.141592" step="0.000001" value="0"></td></tr>
-                <tr><td>z1</td><td><input id="z1" class="inputs rand reset loop " type="range" min="-3.141592" max="3.141592" step="0.000001" value="0"></td></tr>
-                <tr><td>x2</td><td><input id="x2" class="inputs rand reset loop " type="range" min="-3.141592" max="3.141592" step="0.000001" value="0"></td></tr>
-                <tr><td>y2</td><td><input id="y2" class="inputs rand reset loop " type="range" min="-3.141592" max="3.141592" step="0.000001" value="0"></td></tr>
-                <tr><td>z2</td><td><input id="z2" class="inputs rand reset loop " type="range" min="-3.141592" max="3.141592" step="0.000001" value="0"></td></tr>
-                <tr><td>ct</td><td><input id="ct" class="inputs rand loop " type="range" min="-3.141592" max="3.141592" step="0.000001" value="0.785398"></td></tr>
-                <tr><td>cp</td><td><input id="cp" class="inputs rand loop " type="range" min="-3.141592" max="3.141592" step="0.000001" value="0.955316"></td></tr>
-                <tr><td>sc</td><td><input id="sc" class="inputs scroll " type="range" min="1" max="5" step="0.000001" value="2"></td></tr>
-                <tr><td>aa</td><td><input id="aa" class="inputs scroll " type="range" min="1" max="8" step="1" value="1"></td></tr>
+                <tr><td>x1</td><td><input id="x1" class="inputs rand reset loop " type="range" min="-3.141592" max="3.141592" step="0.000001" value="0" title="X rotation angle before reflection"></td></tr>
+                <tr><td>y1</td><td><input id="y1" class="inputs rand reset loop " type="range" min="-3.141592" max="3.141592" step="0.000001" value="0" title="Y rotation angle before reflection"></td></tr>
+                <tr><td>z1</td><td><input id="z1" class="inputs rand reset loop " type="range" min="-3.141592" max="3.141592" step="0.000001" value="0" title="Z rotation angle before reflection"></td></tr>
+                <tr><td>x2</td><td><input id="x2" class="inputs rand reset loop " type="range" min="-3.141592" max="3.141592" step="0.000001" value="0" title="X rotation angle after reflection"></td></tr>
+                <tr><td>y2</td><td><input id="y2" class="inputs rand reset loop " type="range" min="-3.141592" max="3.141592" step="0.000001" value="0" title="Y rotation angle after reflection"></td></tr>
+                <tr><td>z2</td><td><input id="z2" class="inputs rand reset loop " type="range" min="-3.141592" max="3.141592" step="0.000001" value="0" title="Z rotation angle after reflection"></td></tr>
+                <tr><td>ct</td><td><input id="ct" class="inputs rand loop " type="range" min="-3.141592" max="3.141592" step="0.000001" value="0.955316" title="Reflection center yaw axis rotation angle"></td></tr>
+                <tr><td>cp</td><td><input id="cp" class="inputs rand loop " type="range" min="-3.141592" max="3.141592" step="0.000001" value="0.785398" title="Reflection center pitch axis rotation angle"></td></tr>
+                <tr><td>sc</td><td><input id="sc" class="inputs scroll " type="range" min="1" max="5" step="0.000001" value="2" title="Scale"></td></tr>
+                <tr><td>aa</td><td><input id="aa" class="inputs scroll " type="range" min="1" max="8" step="1" value="1" title="Anti-aliasing sample count"></td></tr>
                 <tr><td colspan="2"><button onmousedown="randomize()">Randomize</button></td></tr>
                 <tr><td colspan="2"><button onmousedown="reset()">Reset</button></td></tr>
                 <tr><td colspan="2"><button onmousedown="save()">Save Image</button></td></tr>
@@ -130,7 +130,7 @@
                 gl.uniform3fv(gl.getUniformLocation(program, "rot2"), vars.rot2);
                 let ct = vars.center[0];
                 let cp = vars.center[1];
-                let center = [Math.cos(ct)*Math.sin(cp), Math.sin(ct)*Math.sin(cp), Math.cos(cp)];
+                let center = [Math.cos(cp)*Math.sin(ct), Math.sin(cp)*Math.sin(ct), Math.cos(ct)];
                 gl.uniform3fv(gl.getUniformLocation(program, "center"), center);
                 gl.uniform1f(gl.getUniformLocation(program, "scale"), vars.scale);
                 gl.uniform1i(gl.getUniformLocation(program, "aaLevel"), vars.aaLevel);
@@ -191,8 +191,8 @@
             for (let i = 0; i < ets.length; i++) {
                 ets[i].value = 0;
             }
-            gid("ct").value = 0.785398;
-            gid("cp").value = 0.955316;
+            gid("ct").value = 0.955316;
+            gid("cp").value = 0.785398;
             gid("sc").value = 2;
         }
 
